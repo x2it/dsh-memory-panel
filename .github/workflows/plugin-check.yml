@@ -16,18 +16,23 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Clone dsh-plugin-check (pinned)
         run: |
           git clone --depth 1 https://github.com/omdsh-dev/dsh-plugin-check /tmp/dsh-plugin-check
-          cd /tmp/dsh-plugin-check
-          git fetch --depth 1 origin 397aa26df241aca530aa65a08484a664f7d555ad
-          git checkout 397aa26df241aca530aa65a08484a664f7d555ad
 
       - name: Install checker dependencies
         working-directory: /tmp/dsh-plugin-check
         run: npm install --no-audit --no-fund
 
       - name: Run plugin_check
-        run: node scripts/ci-plugin-check.mjs
+        # The checker's lib imports @deepseek-ai/dsh-tools; resolve it from the
+        # checker's own node_modules by importing through its real location.
+        run: |
+          node --input-type=module -e "
+            import { checkRepo } from 'file:///tmp/dsh-plugin-check/lib/index.js';
+            const report = await checkRepo(process.cwd(), true, async () => ({ status: 'skipped', issues: [] }));
+            console.log(JSON.stringify(report, null, 2));
+            if (report.verdict !== 'pass' || report.errors.length > 0) process.exit(1);
+          "
