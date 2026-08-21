@@ -24,6 +24,10 @@ jobs:
       - name: Install our dependencies
         run: npm install --no-audit --no-fund
 
+      # lib/ is gitignored; build it so the checker can validate main/types.
+      - name: Build
+        run: npm run build
+
       - name: Clone dsh-plugin-check (pinned)
         run: |
           mkdir -p node_modules/@deepseek-ai
