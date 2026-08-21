@@ -5,6 +5,10 @@ export declare function apply(ctx: {
         register: (opts: {
             name: string;
             id: string;
+            locale: string;
         }, comp: unknown) => unknown;
+    };
+    locale: {
+        register: (ns: string, dicts: Record<string, Record<string, string>>) => () => void;
     };
 }): void;

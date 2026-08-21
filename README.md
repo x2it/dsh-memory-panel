@@ -9,7 +9,9 @@ Long-term memory for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-
 - **`memory_save`** — store a memory (creates or updates by key)
 - **`memory_recall`** — search memories by keyword or category
 - **`memory_list`** — list all memories, optionally filtered by category
-- **Sidebar memory panel** — a "记忆" button in the web sidebar opens a panel visualizing the memory store
+- **`memory_delete`** — delete one memory by its exact key
+- **`memory_clear`** — delete ALL memories (requires `confirm: true`)
+- **Sidebar memory panel** — a "Memory" button in the web sidebar opens a panel visualizing the memory store (bilingual, follows the UI language)
 
 Memories live in `~/.dsh/memory.json` — plain JSON on your machine, nothing leaves it.
 
@@ -20,6 +22,8 @@ Memories live in `~/.dsh/memory.json` — plain JSON on your machine, nothing le
 - **Corruption recovery**: a broken `memory.json` is backed up to `memory.json.corrupt-<ts>` before continuing fresh — no silent data loss
 - **Growth control**: content capped at 4000 chars, store capped at 500 entries (oldest evicted), recall results capped at 30
 - **Optional filter**: `memory_list` works with or without `category_filter`
+- **Delete & clear**: `memory_delete` removes one memory; `memory_clear` empties the whole store after an explicit `confirm: true`
+- **Bilingual UI**: the panel follows the UI language (zh / en) via the dsh locale service
 - **Tunnel-aware UI**: the panel warns when accessed through a tunnel where the browser-trust fence blocks `/api/*`
 
 ## Install

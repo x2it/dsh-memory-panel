@@ -8,7 +8,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 
 // dsh-memory-panel — host half
 // 记忆层插件：让 Agent 跨会话记住用户偏好、任务上下文、历史决策。
-// 提供 memory_save / memory_recall / memory_list 三个工具 + GET /api/memory 端点。
+// 提供 memory_save / memory_recall / memory_list / memory_delete / memory_clear
+// 五个工具 + GET /api/memory 端点。
 export const name = 'memory-tool'
 export const inject = ['tools', 'webServer']
 
@@ -125,7 +126,7 @@ function prune(store: MemoryStore): MemoryStore {
 }
 
 export function apply(ctx: Context) {
-  console.log('[memory-tool] apply() called — registering 3 memory tools + HTTP endpoint')
+  console.log('[memory-tool] apply() called — registering 5 memory tools + HTTP endpoint')
 
   // HTTP 端点：暴露 memory.json 给客户端 UI 插件读取
   // GET /api/memory — 返回所有记忆
@@ -251,6 +252,63 @@ export function apply(ctx: Context) {
         `- [${m.category}] ${m.key} — ${clamp(m.content, 60)} (${m.created_at.slice(0, 10)})`
       )
       return `${filtered.length} memor${filtered.length === 1 ? 'y' : 'ies'}${filter !== 'all' ? ` in category "${args.category_filter}"` : ''}:\nLocation: ${MEMORY_FILE}\n\n${lines.join('\n')}`
+    },
+  }))
+
+  // 工具 4：删除单条记忆（按 key）
+  ctx.tools.register(defineTool({
+    name: 'memory_delete',
+    description: 'Delete one memory by its exact key. Returns the deleted memory content, or reports that no such key exists.',
+    parameters: {
+      key: { type: 'string', required: true, description: 'The exact key of the memory to delete (e.g. "user_profile", "current_task")' },
+    },
+    output: {
+      schema: { type: 'string' },
+      render: (_args, value) => [{ type: 'text', text: value }],
+    },
+    // 读改写复合操作，禁止并发执行；进程内还有写锁兜底
+    isConcurrencySafe: () => false,
+    async execute(args) {
+      return withWriteLock(async () => {
+        const store = loadStore()
+        const idx = store.memories.findIndex(m => m.key === args.key)
+        if (idx === -1) {
+          return `No memory found with key "${args.key}". Total stored: ${store.memories.length}`
+        }
+        const removed = store.memories[idx]
+        store.memories.splice(idx, 1)
+        saveStore(store)
+        return `Memory deleted: [${removed.category}] ${removed.key}\nContent: ${removed.content}\nLocation: ${MEMORY_FILE}`
+      })
+    },
+  }))
+
+  // 工具 5：清空所有记忆
+  ctx.tools.register(defineTool({
+    name: 'memory_clear',
+    description: 'Delete ALL stored memories. Use with caution — this permanently empties the memory store. Pass confirm=true to execute.',
+    parameters: {
+      confirm: { type: 'boolean', required: true, description: 'Must be true to actually clear the store; any other value aborts safely.' },
+    },
+    output: {
+      schema: { type: 'string' },
+      render: (_args, value) => [{ type: 'text', text: value }],
+    },
+    // 读改写复合操作，禁止并发执行；进程内还有写锁兜底
+    isConcurrencySafe: () => false,
+    async execute(args) {
+      if (args.confirm !== true) {
+        return `Aborted: memory_clear requires confirm=true. Total stored: ${loadStore().memories.length}`
+      }
+      return withWriteLock(async () => {
+        const store = loadStore()
+        const count = store.memories.length
+        if (count === 0) {
+          return `Memory store is already empty. Location: ${MEMORY_FILE}`
+        }
+        saveStore({ version: store.version, memories: [] })
+        return `Memory cleared: removed ${count} memor${count === 1 ? 'y' : 'ies'}.\nLocation: ${MEMORY_FILE}`
+      })
     },
   }))
 }

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 
 // dsh-memory-panel — client half
 // 侧边栏「记忆」按钮 + 记忆面板弹窗，读取 GET /api/memory（宿主半提供）。
+// 文案通过 locale 服务 i18n（zh / en），组件 props 注入 t 翻译函数。
 
 // 访问模式检测：本地 vs 穿透
 // dsh 的 browser-trust fence 会因为 sec-fetch-site=cross-site 拒绝来自穿透域名的敏感接口
@@ -32,19 +33,79 @@ function MemoryIcon({ size = 18, color = 'currentColor' }: { size?: number; colo
   )
 }
 
-// 分类配色（扁平低饱和）
-function categoryMeta(cat: string): { label: string; bg: string; fg: string } {
-  const map: Record<string, { label: string; bg: string; fg: string }> = {
-    identity: { label: '身份', bg: 'rgba(59,130,246,0.08)', fg: '#3B82F6' },
-    preference: { label: '偏好', bg: 'rgba(29,201,129,0.08)', fg: '#1DC981' },
-    task: { label: '任务', bg: 'rgba(239,170,23,0.08)', fg: '#EFAA17' },
-    decision: { label: '决策', bg: 'rgba(232,70,58,0.08)', fg: '#E8463A' },
-    knowledge: { label: '知识', bg: 'rgba(75,63,227,0.08)', fg: '#4B3FE3' },
+// 分类配色（扁平低饱和）—— 颜色固定，label 由调用方翻译
+function categoryMeta(cat: string): { bg: string; fg: string } {
+  const map: Record<string, { bg: string; fg: string }> = {
+    identity: { bg: 'rgba(59,130,246,0.08)', fg: '#3B82F6' },
+    preference: { bg: 'rgba(29,201,129,0.08)', fg: '#1DC981' },
+    task: { bg: 'rgba(239,170,23,0.08)', fg: '#EFAA17' },
+    decision: { bg: 'rgba(232,70,58,0.08)', fg: '#E8463A' },
+    knowledge: { bg: 'rgba(75,63,227,0.08)', fg: '#4B3FE3' },
   }
-  return map[cat] || { label: cat || '其他', bg: 'rgba(127,127,127,0.08)', fg: '#71717A' }
+  return map[cat] || { bg: 'rgba(127,127,127,0.08)', fg: '#71717A' }
+}
+
+// 分类翻译（未知分类回退为原文）
+function categoryLabel(t: (k: string) => string, cat: string): string {
+  const key = `category.${cat}`
+  const translated = t(key)
+  return translated === key ? cat || t('category.other') : translated
+}
+
+// 字典：zh / en 两套，键保持一致（组件通过 t(key) 取值）
+const DICTS: Record<string, Record<string, string>> = {
+  zh: {
+    'button.label': '记忆',
+    'button.title': '记忆面板',
+    'panel.title': '记忆面板',
+    'panel.subtitle': '代理的长期记忆库',
+    'panel.refresh': '刷新',
+    'panel.loading': '加载中',
+    'panel.close': '关闭 (ESC)',
+    'panel.empty.title': '还没有记忆',
+    'panel.empty.hint': '告诉代理「记住……」即可存下第一条',
+    'panel.loadFailed': '加载失败: {error}',
+    'panel.loadingText': '加载中...',
+    'panel.footer.brand': 'dsh-memory-panel',
+    'panel.footer.path': '~/.dsh/memory.json',
+    'tunnel.badge': '穿透模式',
+    'tunnel.body': '访问本地文件系统、设置项受 dsh 安全围栏限制。请在本地访问 {url} 使用这些功能。',
+    'category.identity': '身份',
+    'category.preference': '偏好',
+    'category.task': '任务',
+    'category.decision': '决策',
+    'category.knowledge': '知识',
+    'category.other': '其他',
+    'category.general': '其他',
+  },
+  en: {
+    'button.label': 'Memory',
+    'button.title': 'Memory panel',
+    'panel.title': 'Memory panel',
+    'panel.subtitle': 'The agent\'s long-term memory store',
+    'panel.refresh': 'Refresh',
+    'panel.loading': 'Loading',
+    'panel.close': 'Close (ESC)',
+    'panel.empty.title': 'No memories yet',
+    'panel.empty.hint': 'Tell the agent "remember …" to store the first one',
+    'panel.loadFailed': 'Load failed: {error}',
+    'panel.loadingText': 'Loading...',
+    'panel.footer.brand': 'dsh-memory-panel',
+    'panel.footer.path': '~/.dsh/memory.json',
+    'tunnel.badge': 'Tunnel mode',
+    'tunnel.body': 'Local filesystem and settings are restricted by the dsh security fence. Visit {url} locally to use these features.',
+    'category.identity': 'Identity',
+    'category.preference': 'Preference',
+    'category.task': 'Task',
+    'category.decision': 'Decision',
+    'category.knowledge': 'Knowledge',
+    'category.other': 'Other',
+    'category.general': 'Other',
+  },
 }
 
 interface ModalProps {
+  t: (k: string, params?: Record<string, unknown>) => string
   memories: MemoryItem[]
   loading: boolean
   error: string | null
@@ -53,7 +114,7 @@ interface ModalProps {
   onRefresh: () => void
 }
 
-function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRefresh }: ModalProps) {
+function MemoryPanelModal({ t, memories, loading, error, accessMode, onClose, onRefresh }: ModalProps) {
   // ESC 关闭
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -81,12 +142,12 @@ function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRef
         }}>
           <MemoryIcon size={18} color="var(--text-300, #999)" />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 500, lineHeight: 1.3 }}>记忆面板</div>
+            <div style={{ fontSize: '14px', fontWeight: 500, lineHeight: 1.3 }}>{t('panel.title')}</div>
             <div style={{ fontSize: '11px', color: 'var(--text-500, #8F8F8F)', fontWeight: 400, lineHeight: 1.3 }}>
-              代理的长期记忆库
+              {t('panel.subtitle')}
             </div>
           </div>
-          <button onClick={onRefresh} disabled={loading} title="刷新" style={{
+          <button onClick={onRefresh} disabled={loading} title={t('panel.refresh')} style={{
             height: '28px', padding: '0 10px', background: 'transparent',
             border: '1px solid var(--border-level-1, rgba(127,127,127,0.18))', borderRadius: '6px',
             cursor: loading ? 'not-allowed' : 'pointer',
@@ -94,9 +155,9 @@ function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRef
             fontWeight: 500, transition: 'all 0.12s ease', display: 'flex', alignItems: 'center', gap: '4px',
             outline: 'none',
           }}>
-            {loading ? '加载中' : '刷新'}
+            {loading ? t('panel.loading') : t('panel.refresh')}
           </button>
-          <button onClick={onClose} title="关闭 (ESC)" style={{
+          <button onClick={onClose} title={t('panel.close')} style={{
             width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer',
             color: 'var(--text-400, #666)', fontSize: '16px', lineHeight: 1, transition: 'all 0.12s ease',
@@ -113,13 +174,8 @@ function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRef
           }}>
             <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0, marginTop: '1px' }}>⚠</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 500, color: 'var(--text-primary, #171717)', marginBottom: '2px' }}>穿透模式</div>
-              <div>
-                访问本地文件系统、设置项受 dsh 安全围栏限制。请在本地访问 <code style={{
-                  fontSize: '11px', padding: '1px 5px', background: 'rgba(127,127,127,0.10)',
-                  borderRadius: '3px', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                }}>http://127.0.0.1:8080</code> 使用这些功能。
-              </div>
+              <div style={{ fontWeight: 500, color: 'var(--text-primary, #171717)', marginBottom: '2px' }}>{t('tunnel.badge')}</div>
+              <div>{t('tunnel.body', { url: 'http://127.0.0.1:8080' })}</div>
             </div>
           </div>
         )}
@@ -128,11 +184,11 @@ function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRef
         <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 18px' }}>
           {loading ? (
             <div style={{ padding: '48px 0', textAlign: 'center', fontSize: '12px', color: 'var(--text-500, #999)' }}>
-              加载中...
+              {t('panel.loadingText')}
             </div>
           ) : error ? (
             <div style={{ padding: '48px 0', textAlign: 'center', fontSize: '12px', color: '#E8463A' }}>
-              加载失败: {error}
+              {t('panel.loadFailed', { error })}
             </div>
           ) : memories.length === 0 ? (
             <div style={{
@@ -140,9 +196,9 @@ function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRef
               alignItems: 'center', gap: '10px',
             }}>
               <MemoryIcon size={32} color="var(--text-600, #CCC)" />
-              <div style={{ fontSize: '13px', color: 'var(--text-500, #999)' }}>还没有记忆</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-500, #999)' }}>{t('panel.empty.title')}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-500, #999)' }}>
-                告诉代理「记住……」即可存下第一条
+                {t('panel.empty.hint')}
               </div>
             </div>
           ) : (
@@ -160,7 +216,7 @@ function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRef
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '20px',
                       padding: '0 7px', borderRadius: '4px', fontSize: '10px', fontWeight: 500,
                       background: meta.bg, color: meta.fg, letterSpacing: '0.02em',
-                    }}>{meta.label}</span>
+                    }}>{categoryLabel(t, m.category)}</span>
                     <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-primary, #171717)', lineHeight: 1 }}>
                       {m.key}
                     </span>
@@ -184,9 +240,9 @@ function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRef
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <MemoryIcon size={12} color="var(--text-600, #BBB)" />
-            <span style={{ fontSize: '10px', fontWeight: 400, color: 'var(--text-500, #999)' }}>dsh-memory-panel</span>
+            <span style={{ fontSize: '10px', fontWeight: 400, color: 'var(--text-500, #999)' }}>{t('panel.footer.brand')}</span>
           </div>
-          <span style={{ fontSize: '10px', fontWeight: 400, color: 'var(--text-500, #999)' }}>~/.dsh/memory.json</span>
+          <span style={{ fontSize: '10px', fontWeight: 400, color: 'var(--text-500, #999)' }}>{t('panel.footer.path')}</span>
         </div>
 
         <style>{`
@@ -198,12 +254,18 @@ function MemoryPanelModal({ memories, loading, error, accessMode, onClose, onRef
   )
 }
 
-// 记忆面板按钮（侧边栏）
-function MemoryPanelButton({ wide }: { wide?: boolean }) {
+// 记忆面板按钮（侧边栏）—— t 由 slot 渲染器注入
+function MemoryPanelButton({ wide, t }: { wide?: boolean; t?: (k: string, params?: Record<string, unknown>) => string }) {
   const [open, setOpen] = useState(false)
   const [memories, setMemories] = useState<MemoryItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // t 可能未注入（测试/独立环境），回退到 zh 字典
+  const tr = t || ((k: string, p?: Record<string, unknown>) => {
+    const s = DICTS.zh[k] ?? k
+    if (!p) return s
+    return s.replace(/\{(\w+)\}/g, (_, name: string) => String(p[name] ?? `{${name}}`))
+  })
 
   const fetchMemories = useCallback(async () => {
     setLoading(true)
@@ -251,29 +313,31 @@ function MemoryPanelButton({ wide }: { wide?: boolean }) {
     },
   }
 
+  const modal = open ? (
+    <MemoryPanelModal
+      t={tr} memories={memories} loading={loading} error={error}
+      accessMode={detectAccessMode()} onClose={() => setOpen(false)} onRefresh={fetchMemories}
+    />
+  ) : null
+
   if (wide) {
     return (
       <>
         <button
           onClick={handleOpen}
-          title="记忆面板"
+          title={tr('button.title')}
           style={{ ...baseStyle, display: 'flex', alignItems: 'center', gap: '10px', width: '100%', height: '36px', padding: '0 12px' }}
           {...commonHandlers}
         >
           <MemoryIcon size={18} />
-          <span style={{ fontSize: '13px', fontWeight: 400, lineHeight: 1 }}>记忆</span>
+          <span style={{ fontSize: '13px', fontWeight: 400, lineHeight: 1 }}>{tr('button.label')}</span>
           {memories.length > 0 && (
             <span style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 500, color: 'var(--text-500, #999)', lineHeight: 1 }}>
               {memories.length}
             </span>
           )}
         </button>
-        {open && (
-          <MemoryPanelModal
-            memories={memories} loading={loading} error={error}
-            accessMode={detectAccessMode()} onClose={() => setOpen(false)} onRefresh={fetchMemories}
-          />
-        )}
+        {modal}
       </>
     )
   }
@@ -281,24 +345,25 @@ function MemoryPanelButton({ wide }: { wide?: boolean }) {
   // 窄屏轨道图标
   return (
     <>
-      <button onClick={handleOpen} title="记忆面板" style={{ ...baseStyle, width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} {...commonHandlers}>
+      <button onClick={handleOpen} title={tr('button.title')} style={{ ...baseStyle, width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} {...commonHandlers}>
         <MemoryIcon size={18} />
       </button>
-      {open && (
-        <MemoryPanelModal
-          memories={memories} loading={loading} error={error}
-          accessMode={detectAccessMode()} onClose={() => setOpen(false)} onRefresh={fetchMemories}
-        />
-      )}
+      {modal}
     </>
   )
 }
 
 // 插件入口
-export const inject = ['slots']
-export function apply(ctx: { slots: { inject: (slot: string, cb: () => unknown) => void; register: (opts: { name: string; id: string }, comp: unknown) => unknown } }) {
+export const inject = ['slots', 'locale']
+export function apply(ctx: {
+  slots: { inject: (slot: string, cb: () => unknown) => void; register: (opts: { name: string; id: string; locale: string }, comp: unknown) => unknown }
+  locale: { register: (ns: string, dicts: Record<string, Record<string, string>>) => () => void }
+}) {
+  // 注册字典（zh/en 两套；disposer 由 fiber 管理）
+  ctx.locale.register('memory-panel', DICTS)
   ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
     name: 'sidebar.footer.action',
     id: 'memory-panel',
+    locale: 'memory-panel', // 声明命名空间 → 组件 props 自动获得 t
   }, MemoryPanelButton))
 }

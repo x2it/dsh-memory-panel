@@ -41,7 +41,9 @@ const CLIENT_EXTERNALS = [
   "react-dom/client",
   "@deepseek-ai/cordis",
   "@deepseek-ai/dsh-client-runtime",
+  "@deepseek-ai/dsh-client-locale",
   "@deepseek-ai/dsh-client-ui-sidebar",
+  "@deepseek-ai/dsh-client-ui-slots",
 ];
 
 const clientResult = await build({

@@ -9,7 +9,9 @@
 - **`memory_save`** — 保存一条记忆（按 key 新建或更新）
 - **`memory_recall`** — 按关键词或类别召回记忆
 - **`memory_list`** — 列出所有记忆，可按类别过滤
-- **侧边栏记忆面板** — Web 侧边栏的「记忆」按钮，打开可视化记忆库的面板
+- **`memory_delete`** — 按 key 精确删除一条记忆
+- **`memory_clear`** — 清空全部记忆（需显式 `confirm: true`）
+- **侧边栏记忆面板** — Web 侧边栏的「记忆」按钮，打开可视化记忆库的面板（双语，跟随界面语言）
 
 记忆存放在 `~/.dsh/memory.json` —— 你机器上的纯 JSON，数据不出本机。
 
@@ -20,6 +22,8 @@
 - **损坏自恢复**：`memory.json` 损坏时先备份为 `memory.json.corrupt-<时间戳>` 再空库继续 —— 绝不静默丢数据
 - **增长控制**：单条内容上限 4000 字符、总条数上限 500（最旧淘汰）、召回结果上限 30 条
 - **可选过滤**：`memory_list` 带不带 `category_filter` 都能用
+- **删除与清空**：`memory_delete` 删除单条；`memory_clear` 在显式 `confirm: true` 后清空整个库
+- **双语界面**：面板文案跟随界面语言（zh / en），走 dsh locale 服务
 - **穿透感知 UI**：通过隧道访问时，面板会提示 browser-trust fence 会拦 `/api/*`
 
 ## 安装

@@ -1,7 +1,7 @@
 {
   "name": "dsh-memory-panel",
-  "description": "Long-term memory for DeepSeek Harness: memory_save/recall/list tools plus a sidebar panel visualizing what the agent remembers about you",
-  "version": "0.1.0",
+  "description": "Long-term memory for DeepSeek Harness: memory_save/recall/list/delete/clear tools plus a bilingual sidebar panel visualizing what the agent remembers about you",
+  "version": "0.1.1",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -36,6 +36,7 @@
       "platform": "web",
       "inject": [
         "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
         "@deepseek-ai/dsh-client-ui-sidebar"
       ]
     }
@@ -58,6 +59,7 @@
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.8",
+    "@deepseek-ai/dsh-client-locale": "^0.1.0-rc.8",
     "@deepseek-ai/dsh-client-ui-sidebar": "^0.1.0-rc.8",
     "@deepseek-ai/dsh-tools": ">=0.0.1-rc.1 <0.2.0"
   },
@@ -68,6 +70,7 @@
     "@types/react": "~18.3.1",
     "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.8",
+    "@deepseek-ai/dsh-client-locale": "^0.1.0-rc.8",
     "@deepseek-ai/dsh-client-ui-sidebar": "^0.1.0-rc.8",
     "@deepseek-ai/dsh-tools": "^0.1.0-rc.8",
     "@deepseek-ai/schemastery": "^3.18.1"
