@@ -1,0 +1,11 @@
+# Bundle patch for dsh-memory-panel: inserts its plugin row into the profile
+# roster. Applied as a profile bundle layer (the `dsh.bundle.patch` manifest
+# field); install with `dsh plugin --profile web add dsh-memory-panel` or
+# `dsh plugin --profile web add github:<user>/dsh-memory-panel`.
+#
+# The single row carries both halves: the host loader imports `main`
+# (lib/index.js → memory tools + /api/memory), and the web client loads
+# `./client` (lib/client.js → sidebar memory panel).
+- insert:
+  - id: memory-panel
+    name: 'dsh-memory-panel'
