@@ -2,7 +2,11 @@
 
 Long-term memory for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`): durable, cross-session memory tools plus a sidebar panel that shows what the agent remembers about you.
 
+**DSH 记忆面板**：为 DeepSeek Harness（`dsh`）提供跨会话持久记忆的插件——`memory_save` / `recall` / `list` 等记忆工具，加一个在 Web 侧边栏可视化「代理记住了你什么」的面板。记忆以纯 JSON 存于本机 `~/.dsh/memory.json`，数据不出本机。
+
 [English](README.md) | [中文](README.zh.md)
+
+<img src="https://raw.githubusercontent.com/x2it/dsh-memory-panel/main/banner.png" alt="DSH 记忆面板 · dsh-memory-panel" width="100%">
 
 ## What it does
 
@@ -97,4 +101,4 @@ The `/api/memory` endpoint has no authentication — bind dsh web to localhost o
 
 ## License
 
-MIT
+[MIT](LICENSE) © 2026 知行工作室 Zhixing Studio · [https://w3b.pub/](https://w3b.pub/) · support@w3b.pub
