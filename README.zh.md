@@ -4,6 +4,8 @@
 
 [English](README.md) | [中文](README.zh.md)
 
+<img src="https://raw.githubusercontent.com/x2it/dsh-memory-panel/main/banner.png" alt="DSH 记忆面板 · dsh-memory-panel" width="100%">
+
 ## 功能
 
 - **`memory_save`** — 保存一条记忆（按 key 新建或更新）
@@ -97,4 +99,4 @@ cordis.patch.yml      # bundle patch（dsh.bundle.patch）
 
 ## License
 
-MIT
+[MIT](LICENSE) © 2026 知行工作室 Zhixing Studio · [https://w3b.pub/](https://w3b.pub/) · support@w3b.pub
