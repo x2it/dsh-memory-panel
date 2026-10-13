@@ -1,4 +1,6 @@
-# dsh-memory-panel
+# DSH 记忆面板 · dsh-memory-panel
+
+**当前版本 Current version：0.1.1**（见 `package.json`）
 
 Long-term memory for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`): durable, cross-session memory tools plus a sidebar panel that shows what the agent remembers about you.
 
@@ -83,7 +85,7 @@ Install the local tarball to test before publishing:
 
 ```sh
 npm pack
-dsh plugin --profile web add ./dsh-memory-panel-0.1.0.tgz
+dsh plugin --profile web add ./dsh-memory-panel-0.1.1.tgz
 ```
 
 ## Layout

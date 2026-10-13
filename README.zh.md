@@ -81,7 +81,7 @@ npm pack            # tarball
 
 ```sh
 npm pack
-dsh plugin --profile web add ./dsh-memory-panel-0.1.0.tgz
+dsh plugin --profile web add ./dsh-memory-panel-0.1.1.tgz
 ```
 
 ## 目录结构
