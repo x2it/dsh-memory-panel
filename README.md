@@ -2,9 +2,17 @@
 
 **当前版本 Current version：0.1.1**（见 `package.json`）
 
-Long-term memory for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`): durable, cross-session memory tools plus a sidebar panel that shows what the agent remembers about you.
+> **DSH 记忆面板**：为 DeepSeek Harness（`dsh`）提供跨会话持久记忆的插件——记忆以纯 JSON 存于本机 `~/.dsh/memory.json`，数据不出本机；Web 侧边栏可视化「代理记住了你什么」。
 
-**DSH 记忆面板**：为 DeepSeek Harness（`dsh`）提供跨会话持久记忆的插件——`memory_save` / `recall` / `list` 等记忆工具，加一个在 Web 侧边栏可视化「代理记住了你什么」的面板。记忆以纯 JSON 存于本机 `~/.dsh/memory.json`，数据不出本机。
+**核心特性：**
+
+- **记忆工具齐备**：`memory_save` 保存 · `memory_recall` 关键词召回 · `memory_list` 分类列表 · `memory_delete` 删除单条 · `memory_clear` 一键清空（需显式确认）
+- **侧边栏可视化**：Web 端侧边栏「Memory」按钮打开记忆面板，界面双语（中/英）跟随 dsh 界面语言
+- **写入安全**：原子写入（临时文件 + 重命名）与并发序列化排队；损坏的 `memory.json` 自动备份为 `memory.json.corrupt-<ts>` 后继续，不丢数据
+- **容量可控**：单条上限 4000 字、总量 500 条（最旧自动淘汰）、召回结果最多 30 条
+- **数据不出本机**：全部记忆以纯 JSON 存于 `~/.dsh/memory.json`，不联网、不上传
+
+Long-term memory for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`): durable, cross-session memory tools plus a sidebar panel that shows what the agent remembers about you.
 
 [English](README.md) | [中文](README.zh.md)
 
