@@ -2,6 +2,7 @@
   "name": "dsh-memory-panel",
   "description": "Long-term memory for DeepSeek Harness: memory_save/recall/list/delete/clear tools plus a bilingual sidebar panel visualizing what the agent remembers about you",
   "version": "0.1.1",
+  "author": "知行工作室 <support@w3b.pub>",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
