@@ -1,5 +1,7 @@
 # dsh-memory-panel
 
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）的长期记忆插件：跨会话持久的记忆工具，加上一个展示「代理记住了你什么」的侧边栏面板。
 
 [English](README.md) | [中文](README.zh.md)

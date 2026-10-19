@@ -1,5 +1,7 @@
 # DSH 记忆面板 · dsh-memory-panel
 
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+
 **当前版本 Current version：0.1.1**（见 `package.json`）
 
 > **DSH 记忆面板**：为 DeepSeek Harness（`dsh`）提供跨会话持久记忆的插件——记忆以纯 JSON 存于本机 `~/.dsh/memory.json`，数据不出本机；Web 侧边栏可视化「代理记住了你什么」。
